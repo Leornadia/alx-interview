@@ -4,22 +4,25 @@
 def canUnlockAll(boxes):
     """
     Determines if all boxes can be unlocked.
-    
-    :param boxes: list of lists representing the boxes and their keys
-    :return: True if all boxes can be unlocked, False otherwise
+
+    Args:
+        boxes (list): A list of lists representing lockboxes and keys.
+
+    Returns:
+        bool: True if all boxes can be unlocked, False otherwise.
     """
-    if not boxes:
-        return False
-    
-    n = len(boxes)
-    unlocked = set([0])
-    keys = set(boxes[0])
-    
-    while keys:
-        new_key = keys.pop()
-        if new_key not in unlocked:
-            if 0 <= new_key < n:
-                unlocked.add(new_key)
-                keys.update(set(boxes[new_key]) - unlocked)
-    
-    return len(unlocked) == n
+
+    num_boxes = len(boxes)
+    unlocked = [False] * num_boxes
+    unlocked[0] = True  
+    queue = [0]  
+
+    while queue:
+        current_box = queue.pop(0)
+        for key in boxes[current_box]:
+            if not unlocked[key] and key < num_boxes:
+                unlocked[key] = True
+                queue.append(key)
+
+    return all(unlocked)  
+
