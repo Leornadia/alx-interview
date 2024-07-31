@@ -1,34 +1,24 @@
 #!/usr/bin/python3
-"""
-Module for the canUnlockAll function.
-"""
+"""Module that contains the canUnlockAll function"""
 
 def canUnlockAll(boxes):
     """
-    Determines if all the boxes can be opened.
+    Determines if all boxes can be unlocked.
     
-    :param boxes: A list of lists where each inner list contains keys to other boxes.
-    :return: True if all boxes can be opened, else False.
+    :param boxes: list of lists representing the boxes and their keys
+    :return: True if all boxes can be unlocked, False otherwise
     """
+    if not boxes or len(boxes) == 0:
+        return False
+    
     n = len(boxes)
-    unlocked = set([0])  # Set to keep track of unlocked boxes
-    keys = set(boxes[0])  # Set of available keys, starting with keys in the first box
+    unlocked = [False] * n
+    unlocked[0] = True
+    keys = boxes[0]
     
-    while keys:
-        new_key = keys.pop()
-        if new_key < n and new_key not in unlocked:
-            unlocked.add(new_key)
-            keys.update(boxes[new_key])
+    for key in keys:
+        if key < n and not unlocked[key]:
+            unlocked[key] = True
+            keys.extend(boxes[key])
     
-    return len(unlocked) == n
-
-# Test cases (main_0.py)
-if __name__ == "__main__":
-    boxes = [[1], [2], [3], [4], []]
-    print(canUnlockAll(boxes))
-
-    boxes = [[1, 4, 6], [2], [0, 4, 1], [5, 6, 2], [3], [4, 1], [6]]
-    print(canUnlockAll(boxes))
-
-    boxes = [[1, 4], [2], [0, 4, 1], [3], [], [4, 1], [5, 6]]
-    print(canUnlockAll(boxes))
+    return all(unlocked)
