@@ -1,41 +1,43 @@
 #!/usr/bin/python3
+
 import sys
-import re
-from collections import defaultdict
 
 def print_statistics(total_size, status_codes):
-    print(f"File size: {total_size}")
-    for status_code in sorted(status_codes.keys()):
-        if status_codes[status_code] > 0:
-            print(f"{status_code}: {status_codes[status_code]}")
+    print("File size: {}".format(total_size))
+    for code in sorted(status_codes.keys()):
+        if status_codes[code] > 0:
+            print("{}: {}".format(code, status_codes[code]))
 
-def parse_logs():
+def parse_log_entry(line):
+    parts = line.split()
+    if len(parts) != 9:
+        return None
+    ip_address = parts[0]
+    status_code = parts[8]
+    file_size = parts[7]
+    if not status_code.isdigit():
+        return None
+    return ip_address, status_code, file_size
+
+def main():
     total_size = 0
-    status_codes = defaultdict(int)
-    line_count = 0
-    
-    log_format = r'^(\S+) - \[([^\]]+)\] "GET /projects/260 HTTP/1.1" (\d+) (\d+)$'
+    status_codes = {}
 
     try:
-        for line in sys.stdin:
-            line = line.strip()
-            match = re.match(log_format, line)
-            
-            if match:
-                status_code = int(match.group(3))
-                file_size = int(match.group(4))
-                
-                total_size += file_size
-                if status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
-                    status_codes[status_code] += 1
-                line_count += 1
-                
-                if line_count % 10 == 0:
-                    print_statistics(total_size, status_codes)
-    
+        for i, line in enumerate(sys.stdin, 1):
+            entry = parse_log_entry(line.strip())
+            if entry is None:
+                continue
+            ip_address, status_code, file_size = entry
+            total_size += int(file_size)
+            status_codes[status_code] = status_codes.get(status_code, 0) + 1
+
+            if i % 10 == 0:
+                print_statistics(total_size, status_codes)
     except KeyboardInterrupt:
-        print_statistics(total_size, status_codes)
-        raise
+        pass
+
+    print_statistics(total_size, status_codes)
 
 if __name__ == "__main__":
-    parse_logs()
+    main()
