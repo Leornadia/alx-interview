@@ -1,54 +1,41 @@
 #!/usr/bin/python3
-
 import sys
-import signal
 import re
+from collections import defaultdict
 
-# Initialize global variables
-total_size = 0
-status_codes = {}
-line_count = 0
-
-# Define the valid status codes
-valid_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
-
-def print_stats():
-    """Print the statistics collected so far."""
+def print_statistics(total_size, status_codes):
     print(f"File size: {total_size}")
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
+    for status_code in sorted(status_codes.keys()):
+        if status_codes[status_code] > 0:
+            print(f"{status_code}: {status_codes[status_code]}")
 
-def signal_handler(sig, frame):
-    """Handle keyboard interruption."""
-    print_stats()
-    sys.exit(0)
+def parse_logs():
+    total_size = 0
+    status_codes = defaultdict(int)
+    line_count = 0
+    
+    log_format = r'^(\S+) - \[([^\]]+)\] "GET /projects/260 HTTP/1.1" (\d+) (\d+)$'
 
-# Set up signal handling for keyboard interruption
-signal.signal(signal.SIGINT, signal_handler)
-
-try:
-    for line in sys.stdin:
-        line_count += 1
-        match = re.search(r'(\d+\.\d+\.\d+\.\d+) - \[.*\] "GET /projects/260 HTTP/1.1" (\d+) (\d+)', line)
-        
-        if match:
-            status_code = match.group(2)
-            file_size = int(match.group(3))
-
-            if status_code in valid_codes:
-                if status_code in status_codes:
+    try:
+        for line in sys.stdin:
+            line = line.strip()
+            match = re.match(log_format, line)
+            
+            if match:
+                status_code = int(match.group(3))
+                file_size = int(match.group(4))
+                
+                total_size += file_size
+                if status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
                     status_codes[status_code] += 1
-                else:
-                    status_codes[status_code] = 1
+                line_count += 1
+                
+                if line_count % 10 == 0:
+                    print_statistics(total_size, status_codes)
+    
+    except KeyboardInterrupt:
+        print_statistics(total_size, status_codes)
+        raise
 
-            total_size += file_size
-
-        if line_count % 10 == 0:
-            print_stats()
-
-except Exception:
-    pass
-finally:
-    print_stats()
-
+if __name__ == "__main__":
+    parse_logs()
