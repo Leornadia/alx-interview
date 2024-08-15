@@ -1,43 +1,62 @@
 #!/usr/bin/python3
-
+import re
+import signal
 import sys
 
-def print_statistics(total_size, status_codes):
-    print("File size: {}".format(total_size))
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print("{}: {}".format(code, status_codes[code]))
+# Signal handler for keyboard interruption (CTRL + C)
+def handler(signal_received, frame):
+    print_metrics()
+    sys.exit(0)
 
-def parse_log_entry(line):
-    parts = line.split()
-    if len(parts) != 9:
-        return None
-    ip_address = parts[0]
-    status_code = parts[8]
-    file_size = parts[7]
-    if not status_code.isdigit():
-        return None
-    return ip_address, status_code, file_size
+# Dictionary to store status code counts
+status_codes = {}
 
-def main():
-    total_size = 0
-    status_codes = {}
+# Total file size
+total_size = 0
 
-    try:
-        for i, line in enumerate(sys.stdin, 1):
-            entry = parse_log_entry(line.strip())
-            if entry is None:
-                continue
-            ip_address, status_code, file_size = entry
-            total_size += int(file_size)
+# Line count
+line_count = 0
+
+# Regular expression pattern to match log entry format
+pattern = r'(\d+\.\d+\.\d+\.\d+) - \[(.*?)\] "GET /projects/260 HTTP/1.1" (\d+) (\d+)'
+
+# Register signal handler
+signal.signal(signal.SIGINT, handler)
+
+def print_metrics():
+    print(f"File size: {total_size}")
+    
+    # Sort status codes in ascending order
+    sorted_codes = sorted(status_codes.items(), key=lambda x: x[0])
+    
+    for code, count in sorted_codes:
+        print(f"{code}: {count}")
+
+try:
+    while True:
+        line = sys.stdin.readline().strip()
+        if not line:
+            break
+        
+        match = re.match(pattern, line)
+        if match:
+            ip, date, status_code, file_size = match.groups()
+            status_code = int(status_code)
+            file_size = int(file_size)
+            
+            # Update status code counts
             status_codes[status_code] = status_codes.get(status_code, 0) + 1
-
-            if i % 10 == 0:
-                print_statistics(total_size, status_codes)
-    except KeyboardInterrupt:
-        pass
-
-    print_statistics(total_size, status_codes)
-
-if __name__ == "__main__":
-    main()
+            
+            # Update total file size
+            total_size += file_size
+            
+            # Increment line count
+            line_count += 1
+            
+            # Print metrics every 10 lines
+            if line_count % 10 == 0:
+                print_metrics()
+        
+except KeyboardInterrupt:
+    print_metrics()
+    sys.exit(0)
