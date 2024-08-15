@@ -1,68 +1,54 @@
 #!/usr/bin/python3
+
 import sys
 import signal
 import re
 
-# Initialize variables
-total_file_size = 0
-status_code_counts = {
-    "200": 0,
-    "301": 0,
-    "400": 0,
-    "401": 0,
-    "403": 0,
-    "404": 0,
-    "405": 0,
-    "500": 0
-}
+# Initialize global variables
+total_size = 0
+status_codes = {}
 line_count = 0
 
-# Regular expression to match the input format
-log_pattern = re.compile(
-    r'^\S+ - \[\S+\] "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)$'
-)
+# Define the valid status codes
+valid_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
 
-# Function to print statistics
 def print_stats():
-    print(f"File size: {total_file_size}")
-    for code in sorted(status_code_counts.keys()):
-        if status_code_counts[code] > 0:
-            print(f"{code}: {status_code_counts[code]}")
+    """Print the statistics collected so far."""
+    print(f"File size: {total_size}")
+    for code in sorted(status_codes.keys()):
+        if status_codes[code] > 0:
+            print(f"{code}: {status_codes[code]}")
 
-# Signal handler for CTRL + C
 def signal_handler(sig, frame):
+    """Handle keyboard interruption."""
     print_stats()
     sys.exit(0)
 
-# Set up signal handling
+# Set up signal handling for keyboard interruption
 signal.signal(signal.SIGINT, signal_handler)
 
-# Read stdin line by line
 try:
     for line in sys.stdin:
-        line = line.strip()
-        match = log_pattern.match(line)
+        line_count += 1
+        match = re.search(r'(\d+\.\d+\.\d+\.\d+) - \[.*\] "GET /projects/260 HTTP/1.1" (\d+) (\d+)', line)
+        
         if match:
-            status_code = match.group(1)
-            file_size = int(match.group(2))
+            status_code = match.group(2)
+            file_size = int(match.group(3))
 
-            # Update total file size
-            total_file_size += file_size
+            if status_code in valid_codes:
+                if status_code in status_codes:
+                    status_codes[status_code] += 1
+                else:
+                    status_codes[status_code] = 1
 
-            # Update status code count
-            if status_code in status_code_counts:
-                status_code_counts[status_code] += 1
+            total_size += file_size
 
-            line_count += 1
+        if line_count % 10 == 0:
+            print_stats()
 
-            # Print stats after every 10 lines
-            if line_count % 10 == 0:
-                print_stats()
-
-except Exception as e:
+except Exception:
     pass
-
 finally:
-    # Print the final stats when the loop ends
     print_stats()
 
