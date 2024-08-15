@@ -1,44 +1,68 @@
 #!/usr/bin/python3
 import sys
-import re
 import signal
+import re
 
-total_size = 0
-status_codes = {}
+# Initialize variables
+total_file_size = 0
+status_code_counts = {
+    "200": 0,
+    "301": 0,
+    "400": 0,
+    "401": 0,
+    "403": 0,
+    "404": 0,
+    "405": 0,
+    "500": 0
+}
+line_count = 0
 
+# Regular expression to match the input format
+log_pattern = re.compile(
+    r'^\S+ - \[\S+\] "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)$'
+)
+
+# Function to print statistics
 def print_stats():
-    """Prints the current log statistics."""
-    print("File size: {}".format(total_size))
-    for code in sorted(status_codes):
-        print("{}: {}".format(code, status_codes[code]))
+    print(f"File size: {total_file_size}")
+    for code in sorted(status_code_counts.keys()):
+        if status_code_counts[code] > 0:
+            print(f"{code}: {status_code_counts[code]}")
 
+# Signal handler for CTRL + C
 def signal_handler(sig, frame):
-    """Handles Ctrl+C to print stats and exit gracefully."""
     print_stats()
     sys.exit(0)
 
+# Set up signal handling
 signal.signal(signal.SIGINT, signal_handler)
 
-if __name__ == "__main__":
-    line_count = 0
+# Read stdin line by line
+try:
     for line in sys.stdin:
-        line_count += 1
-        try:
-            match = re.match(r'.*?\s-\s.*?\s\[.*?\]\s"(GET|POST|PUT|DELETE|HEAD|CONNECT|OPTIONS|TRACE|PATCH)\s\/projects\/260\sHTTP\/1.1"\s([2-5][0-9][0-9])\s(\d+)', line)
-            if match:
-                status_code = int(match.group(2))
-                file_size = int(match.group(3))
+        line = line.strip()
+        match = log_pattern.match(line)
+        if match:
+            status_code = match.group(1)
+            file_size = int(match.group(2))
 
-                total_size += file_size
-                if status_code in status_codes:
-                    status_codes[status_code] += 1
-                else:
-                    status_codes[status_code] = 1
+            # Update total file size
+            total_file_size += file_size
 
-                if line_count % 10 == 0:
-                    print_stats()
+            # Update status code count
+            if status_code in status_code_counts:
+                status_code_counts[status_code] += 1
 
-        except Exception:
-            pass
+            line_count += 1
 
-    print_stats() 
+            # Print stats after every 10 lines
+            if line_count % 10 == 0:
+                print_stats()
+
+except Exception as e:
+    pass
+
+finally:
+    # Print the final stats when the loop ends
+    print_stats()
+
