@@ -32,6 +32,11 @@ def validUTF8(data):
                 n_bytes = 3
             else:
                 return False  # Invalid starting byte
+
+            # Check if enough bytes are left for the multi-byte character
+            if n_bytes > len(data) - i - 1:
+                return False  # Not enough bytes left
+
         else:
             # Check if the byte is a continuation byte (10xxxxxx)
             if (byte >> 6) != 0b10:
