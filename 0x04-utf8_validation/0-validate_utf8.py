@@ -1,53 +1,58 @@
 #!/usr/bin/python3
 """
-Module for validating UTF-8 encoding
+UTF-8 Validation Module
 """
-
 
 def validUTF8(data):
     """
-    Determines if a given data set represents a valid UTF-8 encoding.
-
-    :param data: A list of integers where each integer represents 1 byte of data
-    :return: True if data is a valid UTF-8 encoding, else False
+    Determine if a given data set represents a valid UTF-8 encoding.
+    
+    :param data: List of integers, where each integer represents a byte
+    :return: True if data is a valid UTF-8 encoding, else return False
     """
-    # Number of bytes in the current UTF-8 character
-    n_bytes = 0
+    num_bytes = 0
 
-    # Mask to check if the most significant bit (8th bit from the left) is set to 1
-    mask1 = 1 << 7
-    # Mask to check if the second most significant bit is set to 1
-    mask2 = 1 << 6
+    # Masks to check the first few bits of a byte
+    first_byte_mask_1 = 1 << 7  # 10000000
+    first_byte_mask_2 = 1 << 6  # 01000000
 
     for num in data:
-        # Check only the 8 least significant bits of each integer
-        byte = num & 255
+        # Mask the integer to get only the least significant 8 bits
+        byte = num & 0xFF
 
-        if n_bytes == 0:
-            # Determine how many bytes the UTF-8 character has
-            mask = mask1
+        if num_bytes == 0:
+            # Count the number of leading 1's in the first byte
+            mask = 1 << 7
             while mask & byte:
-                n_bytes += 1
-                mask = mask >> 1
-            
-            # 1-byte character
-            if n_bytes == 0:
+                num_bytes += 1
+                mask >>= 1
+
+            # If no leading 1's, it is a single byte character (ASCII)
+            if num_bytes == 0:
                 continue
-            
-            # Invalid scenarios
-            if n_bytes == 1 or n_bytes > 4:
+
+            # UTF-8 characters can only be 1 to 4 bytes long
+            if num_bytes == 1 or num_bytes > 4:
                 return False
+
         else:
-            # Check if the byte starts with 10
-            if not (byte & mask1 and not (byte & mask2)):
+            # Check that the current byte is of the form 10xxxxxx
+            if not (byte & first_byte_mask_1 and not (byte & first_byte_mask_2)):
                 return False
-        
-        n_bytes -= 1
 
-    # All bytes have been processed
-    return n_bytes == 0
+        num_bytes -= 1
 
+    # If num_bytes is not zero, it means we were expecting more continuation bytes
+    return num_bytes == 0
 
+# Example usage:
 if __name__ == "__main__":
-    # Test cases can be added here
-    pass
+    data1 = [65]
+    print(validUTF8(data1))  # Should return True
+
+    data2 = [80, 121, 116, 104, 111, 110, 32, 105, 115, 32, 99, 111, 111, 108, 33]
+    print(validUTF8(data2))  # Should return True
+
+    data3 = [229, 65, 127, 256]
+    print(validUTF8(data3))  # Should return False
+
