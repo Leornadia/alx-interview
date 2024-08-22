@@ -1,47 +1,58 @@
 #!/usr/bin/python3
 """
-This module defines a function to determine if a given data set
-represents a valid UTF-8 encoding.
+UTF-8 Validation Module
 """
-
 
 def validUTF8(data):
     """
-    Determines if a given data set represents a valid UTF-8 encoding.
-
-    Args:
-        data (list): A list of integers representing the data to be validated.
-
-    Returns:
-        bool: True if data is a valid UTF-8 encoding, False otherwise.
+    Determine if a given data set represents a valid UTF-8 encoding.
+    
+    :param data: List of integers, where each integer represents a byte
+    :return: True if data is a valid UTF-8 encoding, else return False
     """
+    num_bytes = 0
 
-    n_bytes = 0
-    for i in range(len(data)):
-        byte = data[i]
+    # Masks to check the first few bits of a byte
+    first_byte_mask_1 = 1 << 7  # 10000000
+    first_byte_mask_2 = 1 << 6  # 01000000
 
-        # Check for a new UTF-8 character starting byte
-        if n_bytes == 0:
-            if (byte >> 7) == 0:  # Single byte character (0xxxxxxx)
-                n_bytes = 0
-            elif (byte >> 5) == 0b110:  # 2-byte character (110xxxxx)
-                n_bytes = 1
-            elif (byte >> 4) == 0b1110:  # 3-byte character (1110xxxx)
-                n_bytes = 2
-            elif (byte >> 3) == 0b11110:  # 4-byte character (11110xxx)
-                n_bytes = 3
-            else:
-                return False  # Invalid starting byte
+    for num in data:
+        # Extract the 8 least significant bits
+        byte = num & 0xFF
 
-            # Check if enough bytes are left for the multi-byte character
-            if n_bytes > len(data) - i - 1:
-                return False  # Not enough bytes left
+        if num_bytes == 0:
+            # Count the number of leading 1's in the first byte
+            mask = 1 << 7
+            while mask & byte:
+                num_bytes += 1
+                mask >>= 1
+
+            # If no leading 1's, it is a single byte character (ASCII)
+            if num_bytes == 0:
+                continue
+
+            # UTF-8 characters can only be 1 to 4 bytes long
+            if num_bytes == 1 or num_bytes > 4:
+                return False
 
         else:
-            # Check if the byte is a continuation byte (10xxxxxx)
-            if (byte >> 6) != 0b10:
-                return False  # Not a valid continuation byte
-            n_bytes -= 1
+            # Check that the current byte is of the form 10xxxxxx
+            if not (byte & first_byte_mask_1 and not (byte & first_byte_mask_2)):
+                return False
 
-    # Check if we reached the end of a valid character
-    return n_bytes == 0
+        num_bytes -= 1
+
+    # If num_bytes is not zero, it means we were expecting more continuation bytes
+    return num_bytes == 0
+
+# Example usage:
+if __name__ == "__main__":
+    data1 = [65]
+    print(validUTF8(data1))  # Should return True
+
+    data2 = [80, 121, 116, 104, 111, 110, 32, 105, 115, 32, 99, 111, 111, 108, 33]
+    print(validUTF8(data2))  # Should return True
+
+    data3 = [229, 65, 127, 256]
+    print(validUTF8(data3))  # Should return False
+
