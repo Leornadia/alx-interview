@@ -1,31 +1,25 @@
 #!/usr/bin/python3
 
 def makeChange(coins, total):
-    """
-    Determines the fewest number of coins needed to meet a given amount total.
-
-    Args:
-        coins: A list of coin denominations.
-        total: The target amount.
-
-    Returns:
-        The fewest number of coins needed, or -1 if it's not possible.
-    """
+    # If the total is less than or equal to 0, no coins are needed
     if total <= 0:
         return 0
 
-    # Sort coins in descending order to try larger denominations first (greedy)
-    coins.sort(reverse=True)
+    # Initialize an array to store the minimum coins needed for each amount
+    dp = [float('inf')] * (total + 1)
+    dp[0] = 0  # 0 coins are needed to make a total of 0
 
-    num_coins = 0
-    remaining_total = total
-
+    # Iterate over each coin
     for coin in coins:
-        while remaining_total >= coin:
-            remaining_total -= coin
-            num_coins += 1
+        # Update dp array for all amounts greater than or equal to the coin's value
+        for amount in range(coin, total + 1):
+            dp[amount] = min(dp[amount], dp[amount - coin] + 1)
 
-    if remaining_total == 0:
-        return num_coins
-    else:
-        return -1 
+    # If dp[total] is still infinity, it means the total cannot be met
+    return dp[total] if dp[total] != float('inf') else -1
+
+# Example usage:
+if __name__ == "__main__":
+    print(makeChange([1, 2, 25], 37))  # Output: 7
+    print(makeChange([1256, 54, 48, 16, 102], 1453))  # Output: -1
+
