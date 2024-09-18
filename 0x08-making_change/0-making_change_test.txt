@@ -1,41 +1,26 @@
-# Test cases for 0-making_change.py
+# Test cases for makeChange function
+Test Case 1:
+coins = [1, 2, 25]
+total = 37
+Expected Output = 7
 
-# Test case 1: Basic case
-Input: coins = [1, 2, 25], total = 37
-Expected Output: 7
+Test Case 2:
+coins = [1256, 54, 48, 16, 102]
+total = 1453
+Expected Output = -1
 
-# Test case 2: Impossible case
-Input: coins = [1256, 54, 48, 16, 102], total = 1453
-Expected Output: -1
+Test Case 3:
+coins = [1, 5, 10]
+total = 11
+Expected Output = 2
 
-# Test case 3: Zero total
-Input: coins = [1, 2, 5], total = 0
-Expected Output: 0
+Test Case 4:
+coins = [3, 7, 11]
+total = 17
+Expected Output = 3
 
-# Test case 4: Negative total
-Input: coins = [1, 2, 5], total = -5
-Expected Output: 0
+Test Case 5:
+coins = [5, 7]
+total = 1
+Expected Output = -1
 
-# Test case 5: Single coin denomination
-Input: coins = [2], total = 3
-Expected Output: -1
-
-# Test case 6: Large numbers
-Input: coins = [1, 5, 10, 25], total = 10000
-Expected Output: 400
-
-# Test case 7: Exact change
-Input: coins = [1, 5, 10, 25], total = 100
-Expected Output: 4
-
-# Test case 8: No solution with given denominations
-Input: coins = [2, 5, 10, 20], total = 3
-Expected Output: -1
-
-# Test case 9: Optimal solution requires larger coins
-Input: coins = [1, 5, 10, 25], total = 30
-Expected Output: 2
-
-# Test case 10: Empty coin list
-Input: coins = [], total = 5
-Expected Output: -1

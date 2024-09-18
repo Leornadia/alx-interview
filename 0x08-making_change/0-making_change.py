@@ -1,6 +1,21 @@
 #!/usr/bin/python3
+"""
+This module contains the makeChange function which solves
+the coin change problem.
+"""
 
 def makeChange(coins, total):
+    """
+    Determine the fewest number of coins needed to meet a given amount `total`.
+    
+    Args:
+        coins (list of int): A list of coin denominations.
+        total (int): The target amount to achieve with the coins.
+    
+    Returns:
+        int: The minimum number of coins needed to meet `total`, or -1 if
+        it's not possible to meet the `total` with the available coins.
+    """
     # If the total is less than or equal to 0, no coins are needed
     if total <= 0:
         return 0
@@ -17,9 +32,4 @@ def makeChange(coins, total):
 
     # If dp[total] is still infinity, it means the total cannot be met
     return dp[total] if dp[total] != float('inf') else -1
-
-# Example usage:
-if __name__ == "__main__":
-    print(makeChange([1, 2, 25], 37))  # Output: 7
-    print(makeChange([1256, 54, 48, 16, 102], 1453))  # Output: -1
 
