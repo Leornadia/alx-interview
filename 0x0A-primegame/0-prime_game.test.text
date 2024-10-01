@@ -1,29 +1,40 @@
 #!/usr/bin/python3
-"""Unittest module for testing the prime_game function."""
+"""
+Test cases for the Prime Game solution
+"""
 
 import unittest
-from 0_prime_game import prime_game
-
+from prime_game import isWinner
 
 class TestPrimeGame(unittest.TestCase):
-    """Test cases for the prime_game function."""
 
-    def test_small_values(self):
-        self.assertEqual(prime_game(1), None)
-        self.assertEqual(prime_game(2), "Maria")
-        self.assertEqual(prime_game(3), "Maria")
-        self.assertEqual(prime_game(4), "Ben")
-        self.assertEqual(prime_game(5), "Maria")
+    def test_example_case(self):
+        self.assertEqual(isWinner(5, [2, 5, 1, 4, 3]), "Ben")
 
-    def test_medium_values(self):
-        self.assertEqual(prime_game(10), "Ben")
-        self.assertEqual(prime_game(15), "Maria")
-        self.assertEqual(prime_game(20), "Ben")
-    
-    def test_large_value(self):
-        self.assertEqual(prime_game(100), "Ben")  # Example with a larger n
+    def test_maria_wins(self):
+        self.assertEqual(isWinner(3, [4, 5, 1]), "Maria")
 
+    def test_ben_wins(self):
+        self.assertEqual(isWinner(3, [2, 3, 4]), "Ben")
 
+    def test_tie(self):
+        self.assertEqual(isWinner(2, [2, 3]), None)
+
+    def test_single_round(self):
+        self.assertEqual(isWinner(1, [10]), "Maria")
+
+    def test_large_numbers(self):
+        self.assertEqual(isWinner(5, [1000, 1000, 1000, 1000, 1000]), "Maria")
+
+    def test_invalid_input(self):
+        self.assertEqual(isWinner(0, []), None)
+        self.assertEqual(isWinner(-1, [1, 2, 3]), None)
+
+    def test_all_ones(self):
+        self.assertEqual(isWinner(10, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), "Ben")
+
+    def test_mixed_case(self):
+        self.assertEqual(isWinner(10, [5, 5, 5, 5, 5, 2, 2, 2, 2, 2]), "Maria")
 
 if __name__ == '__main__':
     unittest.main()
