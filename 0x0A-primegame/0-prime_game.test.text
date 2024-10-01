@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+"""Unittest module for testing the prime_game function."""
+
+import unittest
+from 0_prime_game import prime_game
+
+
+class TestPrimeGame(unittest.TestCase):
+    """Test cases for the prime_game function."""
+
+    def test_small_values(self):
+        self.assertEqual(prime_game(1), None)
+        self.assertEqual(prime_game(2), "Maria")
+        self.assertEqual(prime_game(3), "Maria")
+        self.assertEqual(prime_game(4), "Ben")
+        self.assertEqual(prime_game(5), "Maria")
+
+    def test_medium_values(self):
+        self.assertEqual(prime_game(10), "Ben")
+        self.assertEqual(prime_game(15), "Maria")
+        self.assertEqual(prime_game(20), "Ben")
+    
+    def test_large_value(self):
+        self.assertEqual(prime_game(100), "Ben")  # Example with a larger n
+
+
+
+if __name__ == '__main__':
+    unittest.main()
