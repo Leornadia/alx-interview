@@ -1,71 +1,66 @@
 #!/usr/bin/python3
 
+def sieve_of_eratosthenes(n):
+    """
+    Use Sieve of Eratosthenes to find all prime numbers up to n.
+    Returns a list where the index is True if it is a prime number.
+    """
+    primes = [True] * (n + 1)
+    primes[0] = primes[1] = False
+    
+    for i in range(2, int(n ** 0.5) + 1):
+        if primes[i]:
+            for j in range(i * i, n + 1, i):
+                primes[j] = False
+    return primes
+
+def count_prime_moves(n, primes):
+    """
+    Count how many prime numbers there are up to n, which translates into the number of moves.
+    """
+    return sum(primes[:n + 1])
+
 def isWinner(x, nums):
-  """
-  Determines the winner of x rounds of the Prime Game based on optimal play.
-
-  Args:
-      x: Number of rounds to play.
-      nums: List of consecutive integers (1 to n) for each round (n varies).
-
-  Returns:
-      str: Name of the player who wins the most rounds ("Maria" or "Ben").
-      None: If the winner cannot be determined (a tie).
-  """
-
-  maria_wins, ben_wins = 0, 0
-  for num_set in nums:
-    # Check if starting number is even (guaranteed Ben win)
-    if num_set[0] % 2 == 0:
-      ben_wins += 1
-      continue
-
-    # Analyze remaining numbers for winnable state for Maria
-    winnable = False
-    for num in num_set:
-      if is_prime(num):
-        # Check if removing a prime leaves only even numbers (Ben wins)
-        all_even = True
-        for remaining in num_set:
-          if remaining % 2 != 0:
-            all_even = False
-            break
-        if not all_even:
-          winnable = True
-          break
-
-    if winnable:
-      maria_wins += 1
+    """
+    Determines the winner of the game played in x rounds.
+    
+    Arguments:
+    x -- number of rounds
+    nums -- list containing the upper limit (n) for each round
+    
+    Returns:
+    Name of the player who won the most rounds: "Maria" or "Ben".
+    If the winner cannot be determined, return None.
+    """
+    if x <= 0 or not nums:
+        return None
+    
+    # Precompute primes up to the maximum number in nums
+    max_n = max(nums)
+    primes = sieve_of_eratosthenes(max_n)
+    
+    maria_wins = 0
+    ben_wins = 0
+    
+    # Loop through each round
+    for n in nums:
+        prime_moves = count_prime_moves(n, primes)
+        
+        # If the number of prime moves is odd, Maria wins the round; if even, Ben wins
+        if prime_moves % 2 == 1:
+            maria_wins += 1
+        else:
+            ben_wins += 1
+    
+    # Determine the overall winner
+    if maria_wins > ben_wins:
+        return "Maria"
+    elif ben_wins > maria_wins:
+        return "Ben"
     else:
-      ben_wins += 1
+        return None
 
-  # Determine winner based on round wins
-  if maria_wins > ben_wins:
-    return "Maria"
-  elif ben_wins > maria_wins:
-    return "Ben"
-  else:
-    return None
+# Example usage
+if __name__ == "__main__":
+    print("Winner: {}".format(isWinner(5, [2, 5, 1, 4, 3])))  # Expected output: Ben
 
-def is_prime(n):
-  """
-  Checks if a number is prime (used for winnable state analysis).
-
-  Args:
-      n: The number to check for primality.
-
-  Returns:
-      bool: True if n is prime, False otherwise.
-  """
-  if n <= 1:
-    return False
-  if n <= 3:
-    return True
-  if n % 2 == 0 or n % 3 == 0:
-    return False
-  i = 5
-  while i * i <= n:
-    if n % i == 0 or n % (i + 2) == 0:
-      return False
-    i += 6
-  return True
