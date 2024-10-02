@@ -1,53 +1,49 @@
 #!/usr/bin/python3
-"""Prime game module.
-"""
+"""Module to determine the winner of a prime game session."""
 
+def sieve_of_eratosthenes(limit):
+    """Returns a list where True means prime and False means not prime up to `limit`."""
+    primes = [True] * (limit + 1)
+    primes[0] = primes[1] = False  # 0 and 1 are not primes
+    for i in range(2, int(limit ** 0.5) + 1):
+        if primes[i]:
+            for multiple in range(i * i, limit + 1, i):
+                primes[multiple] = False
+    return primes
 
-def isWinner(x, nums):
-    """Determines the winner of a prime game session with `x` rounds.
-    
-    Args:
-        x: The number of rounds.
-        nums: List of integers, where each integer represents the range [1, n] for that round.
-        
-    Returns:
-        'Maria' if Maria wins more rounds, 'Ben' if Ben wins more rounds, or None if it's a tie.
-    """
-    if x < 1 or not nums:
+def count_primes(prime_list):
+    """Returns a list of prime counts up to each index based on `prime_list`."""
+    count_up_to = [0] * len(prime_list)
+    prime_count = 0
+    for i in range(1, len(prime_list)):
+        if prime_list[i]:
+            prime_count += 1
+        count_up_to[i] = prime_count
+    return count_up_to
+
+def isWinner(rounds, nums):
+    """Determines the winner after `rounds` rounds of the prime game."""
+    if rounds < 1 or not nums:
         return None
 
-    # Find the maximum number in nums to generate primes up to that limit
-    n = max(nums)
+    max_num = max(nums)
+    primes = sieve_of_eratosthenes(max_num)
+    prime_counts = count_primes(primes)
 
-    # Sieve of Eratosthenes to find all prime numbers up to n
-    primes = [True] * (n + 1)  # Initialize the sieve list with True
-    primes[0] = primes[1] = False  # 0 and 1 are not prime
+    maria_wins = 0
+    ben_wins = 0
 
-    for i in range(2, int(n ** 0.5) + 1):
-        if primes[i]:
-            for j in range(i * i, n + 1, i):
-                primes[j] = False
-
-    # Precompute the number of primes up to each number
-    prime_count = [0] * (n + 1)
-    for i in range(1, n + 1):
-        prime_count[i] = prime_count[i - 1] + (1 if primes[i] else 0)
-
-    # Count wins for Maria and Ben
-    marias_wins = 0
-    bens_wins = 0
-
-    # Determine the winner for each round
-    for num in nums:
-        if prime_count[num] % 2 == 1:
-            marias_wins += 1
+    for n in nums:
+        # Check the number of primes up to n
+        prime_count = prime_counts[n]
+        if prime_count % 2 == 1:
+            maria_wins += 1  # Odd number of primes -> Maria wins
         else:
-            bens_wins += 1
+            ben_wins += 1  # Even number of primes -> Ben wins
 
-    # Determine the overall winner
-    if marias_wins > bens_wins:
+    if maria_wins > ben_wins:
         return 'Maria'
-    elif bens_wins > marias_wins:
+    elif ben_wins > maria_wins:
         return 'Ben'
     else:
         return None
