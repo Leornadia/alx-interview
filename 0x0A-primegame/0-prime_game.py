@@ -1,56 +1,61 @@
 #!/usr/bin/python3
 
-def is_prime(n):
-    """Efficiently checks if a number is prime."""
-    if n < 2:
-        return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
-
-def prime_game(n):
-    """Determines the winner of a single round."""
-    if n < 2:
-        return "Ben"
-
-    numbers = list(range(1, n + 1))
-    turn = 0  # 0 for Maria, 1 for Ben
-
-    while True:
-        found_prime = False
-        for i in range(len(numbers)):
-            if numbers[i] != 0 and is_prime(numbers[i]): #Check if Number Exist and is prime
-                found_prime = True
-                prime_to_remove = numbers[i]
-                numbers[i] = 0  #Remove the prime
-                for j in range(i + 1, len(numbers)): #Remove multiples of the selected prime only
-                    if numbers[j] != 0 and numbers[j] % prime_to_remove == 0:
-                        numbers[j] = 0
-                break
-
-        if not found_prime:
-            break
-
-        turn += 1
-
-    return "Maria" if turn % 2 == 0 else "Ben" #Maria starts
-
 def isWinner(x, nums):
-    """Determines the overall winner over x rounds."""
-    maria_wins = 0
-    ben_wins = 0
+  """
+  Determines the winner of x rounds of the Prime Game based on optimal play.
 
-    for n in nums:
-        winner = prime_game(n)
-        if winner == "Maria":
-            maria_wins += 1
-        else:
-            ben_wins += 1
+  Args:
+      x: Number of rounds to play.
+      nums: List of consecutive integers (1 to n) for each round (n varies).
 
-    if maria_wins > ben_wins:
-        return "Maria"
-    elif ben_wins > maria_wins:
-        return "Ben"
+  Returns:
+      str: Name of the player who wins the most rounds ("Maria" or "Ben").
+      None: If the winner cannot be determined (a tie).
+  """
+
+  maria_wins, ben_wins = 0, 0
+  for num_set in nums:
+    # Check if starting number is even (guaranteed Ben win)
+    if num_set[0] % 2 == 0:
+      ben_wins += 1
+      continue
+
+    # Analyze remaining numbers for winnable state for Maria
+    winnable = False
+    for num in num_set:
+      if is_prime(num):
+        # Check if removing a prime leaves only even numbers (Ben wins)
+        all_even = True
+        for remaining in num_set:
+          if remaining % 2 != 0:
+            all_even = False
+            break
+        if not all_even:
+          winnable = True
+          break
+
+    if winnable:
+      maria_wins += 1
     else:
-        return None
+      ben_wins += 1
+
+  # Determine winner based on round wins
+  if maria_wins > ben_wins:
+    return "Maria"
+  elif ben_wins > maria_wins:
+    return "Ben"
+  else:
+    return None
+
+def is_prime(n):
+  """
+  Checks if a number is prime (used for winnable state analysis).
+
+  Args:
+      n: The number to check for primality.
+
+  Returns:
+      bool: True if n is prime, False otherwise.
+  """
+  # Implement your prime checking logic here (e.g., trial division)
+  # ...
