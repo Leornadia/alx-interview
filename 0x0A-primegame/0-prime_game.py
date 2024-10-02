@@ -14,27 +14,27 @@ def prime_game(n):
     if n < 2:
         return "Ben"
 
-    numbers = list(range(1, n + 1))  # List of numbers in the game
-    turns = 0
+    numbers = list(range(1, n + 1))
+    turn = 0  # 0 for Maria, 1 for Ben
 
     while True:
         found_prime = False
         for i in range(len(numbers)):
-            if numbers[i] > 0 and is_prime(numbers[i]):  #Check If Number Exist and is prime
+            if numbers[i] != 0 and is_prime(numbers[i]): #Check if Number Exist and is prime
                 found_prime = True
-                p = numbers[i]
-                for j in range(len(numbers)):
-                    if numbers[j] % p == 0:
-                        numbers[j] = 0  # "Remove" multiples of the prime
-                break  # Move to next player's turn after removing prime
+                prime_to_remove = numbers[i]
+                numbers[i] = 0  #Remove the prime
+                for j in range(i + 1, len(numbers)): #Remove multiples of the selected prime only
+                    if numbers[j] != 0 and numbers[j] % prime_to_remove == 0:
+                        numbers[j] = 0
+                break
 
         if not found_prime:
-            break # No primes left, game ends
+            break
 
-        turns += 1
+        turn += 1
 
-    return "Maria" if turns % 2 == 1 else "Ben"  # Maria starts
-
+    return "Maria" if turn % 2 == 0 else "Ben" #Maria starts
 
 def isWinner(x, nums):
     """Determines the overall winner over x rounds."""
@@ -45,7 +45,7 @@ def isWinner(x, nums):
         winner = prime_game(n)
         if winner == "Maria":
             maria_wins += 1
-        elif winner == "Ben":
+        else:
             ben_wins += 1
 
     if maria_wins > ben_wins:
